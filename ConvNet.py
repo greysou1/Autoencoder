@@ -7,10 +7,7 @@ class ConvNet(nn.Module):
     def __init__(self, mode, image_size, num_classes):
         super(ConvNet, self).__init__()
         
-        # Define various layers here, such as in the tutorial example
-        # self.conv1 = nn.Conv2D(...)
-        # Pool over 2x2 regions, 40 kernels, stride =1, with kernel size of 5x5.
-        # define first conv laver 
+        self.mode = mode
         
         
         # Fully connected layers
@@ -61,6 +58,8 @@ class ConvNet(nn.Module):
         
         
     def model(self, X):
+        # if self.mode == 1:
+        #     X = X.reshape(-1, 28*28)
         encoded = self.encoder(X)
         decoded = self.decoder(encoded)
 

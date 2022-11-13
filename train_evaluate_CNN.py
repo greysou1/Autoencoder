@@ -68,7 +68,7 @@ def plot(num_epochs, train_losses, train_accuracies, best_accuracy, save=0, mode
     
     plt.show()
 
-def train(model, device, train_loader, optimizer, criterion, epoch, batch_size, num_epochs):
+def train(mode, model, device, train_loader, optimizer, criterion, epoch, batch_size, num_epochs):
     '''
     Trains the model for an epoch and optimizes it.
     model: The model to train. Should already be in correct device.
@@ -89,8 +89,10 @@ def train(model, device, train_loader, optimizer, criterion, epoch, batch_size, 
     # Iterate over entire training samples (1 epoch)
     for batch_idx, batch_sample in enumerate(train_loader):
         data, target = batch_sample
-        print(f'{data.shape = }')
-        
+        # print(f'{data.shape = }')
+
+        if mode == 1:
+            data = data.reshape(-1, 28*28)
         # Push data/label to correct device
         data, target = data.to(device), target.to(device)
         
@@ -124,7 +126,7 @@ def train(model, device, train_loader, optimizer, criterion, epoch, batch_size, 
         100. * correct / ((batch_idx+1) * batch_size)))
     return train_loss, train_acc
     
-def test(model, device, test_loader, criterion, epoch, num_epochs, batch_size):
+def test(mode, model, device, test_loader, criterion, epoch, num_epochs, batch_size):
     '''
     Tests the model.
     model: The model to train. Should already be in correct device.
@@ -142,12 +144,14 @@ def test(model, device, test_loader, criterion, epoch, num_epochs, batch_size):
     with torch.no_grad():
         for batch_idx, sample in enumerate(test_loader):
             data, target = sample
+            if mode == 1:
+                data = data.reshape(-1, 28*28)
             data, target = data.to(device), target.to(device)
             # Predict for data by doing forward pass
             output = model(data)
         
             # Compute loss based on same criterion as training 
-            loss = criterion(output, target)
+            loss = criterion(output, data)
             
             # Append loss to overall test loss
             losses.append(loss.item())
@@ -156,7 +160,7 @@ def test(model, device, test_loader, criterion, epoch, num_epochs, batch_size):
             pred = output.argmax(dim=1, keepdim=True)
             
             _, predictions = output.max(1)
-            correct += (predictions == target).sum()
+            # correct += (predictions == target).sum()
             print('Testing epoch: ({}/{}) batch: ({}/{})'.format(epoch, num_epochs, batch_idx+1, len(test_loader)), end='\r')
 
     test_loss = float(np.mean(losses))
@@ -198,8 +202,8 @@ def run_model(mode=1, learning_rate=0.01, batch_size=10, num_epochs=60):
     # Run training for n_epochs specified in config 
     for epoch in range(1, num_epochs + 1):
         # compute the accuracy and lost for each epoch
-        train_loss, train_accuracy = train(model, device, train_loader, optimizer, criterion, epoch, batch_size, num_epochs)
-        test_loss, test_accuracy = test(model, device, test_loader, criterion, epoch, num_epochs, batch_size)
+        train_loss, train_accuracy = train(mode, model, device, train_loader, optimizer, criterion, epoch, batch_size, num_epochs)
+        test_loss, test_accuracy = test(mode, model, device, test_loader, criterion, epoch, num_epochs, batch_size)
         
         # store the best test accuracy
         if test_accuracy > best_accuracy:
@@ -207,10 +211,10 @@ def run_model(mode=1, learning_rate=0.01, batch_size=10, num_epochs=60):
 
         # save the train accuracy and train loss for this epoch so that we can plot it later
         train_losses.append(train_loss)
-        train_accuracies.append(train_accuracy.cpu().numpy())
+        # train_accuracies.append(train_accuracy.cpu().numpy())
 
     # after the training is completed plot the losses and accuracies against the epochs
-    plot(num_epochs, train_losses, train_accuracies, best_accuracy, save=1, mode=mode)
+    # plot(num_epochs, train_losses, train_accuracies, best_accuracy, save=1, mode=mode)
 
     print("accuracy is {:2.2f}".format(best_accuracy))
 
@@ -222,7 +226,7 @@ if __name__ == '__main__':
     num_epochs = 10
 
     print('\n\n'+('='*32)+' Training model 1 '+('='*32))
-    run_model(mode=1, learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)    
+    # run_model(mode=1, learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)    
     print('='*80)
 
     # ================== Model 2 ==================
