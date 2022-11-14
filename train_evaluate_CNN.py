@@ -8,7 +8,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 # from torch.utils.tensorboard import SummaryWriter
-from ConvNet import ConvNet 
+from AutoEncoder import AutoEncoder 
 import argparse
 import numpy as np     
 import matplotlib.pyplot as plt
@@ -91,7 +91,7 @@ def train(mode, model, device, train_loader, optimizer, criterion, epoch, batch_
         data, target = batch_sample
         # print(f'{data.shape = }')
 
-        if mode == 1:
+        if mode == 1: # FC layers
             data = data.reshape(-1, 28*28)
         # Push data/label to correct device
         data, target = data.to(device), target.to(device)
@@ -153,6 +153,12 @@ def test(mode, model, device, test_loader, criterion, epoch, num_epochs, batch_s
             # Compute loss based on same criterion as training 
             loss = criterion(output, data)
             
+            data = data.reshape(1, 28, -1)
+            output = output.reshape(1, 28, -1)
+            img = Image.fromarray(data, 'RGB')
+            img.save('my.png')
+            img.show()
+
             # Append loss to overall test loss
             losses.append(loss.item())
             
@@ -187,7 +193,7 @@ def run_model(mode=1, learning_rate=0.01, batch_size=10, num_epochs=60):
     num_classes = 10
 
     # Initialize the model and send to device 
-    model = ConvNet(mode, image_size, num_classes).to(device)
+    model = AutoEncoder(mode, image_size, num_classes).to(device)
     # Define loss function.
     criterion = nn.MSELoss()
     # Define optimizer function.
@@ -219,6 +225,9 @@ def run_model(mode=1, learning_rate=0.01, batch_size=10, num_epochs=60):
     print("accuracy is {:2.2f}".format(best_accuracy))
 
     print("Training and evaluation finished")
+
+def show_recon_images(mode, model, device, test_loader, criterion, epoch, num_epochs, batch_size):
+
 if __name__ == '__main__':
     # ================== Model 1 ==================
     learning_rate = 0.1
